@@ -5,12 +5,34 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.util.Units;
 
 public class DrivetrainConstants {
     public final static CANBus DRIVETRAIN_CANBUS = new CANBus("Drivetrain");
 
-    public final static int GYRO_ID = 0;
+    public final static int GYRO_ID = 13;
 
+    public final static Boolean USING_VISION = true;
+
+    public final static String LIMELIGHT_SHOOTER = "limelight-shooter";
+
+    public static final double WHEEL_BASE_WIDTH = Units.inchesToMeters(21); // measure of FL wheel to FR wheel or BL wheel to BR wheel
+    public static final double WHEEL_BASE_LENGTH = Units.inchesToMeters(21);
+    public final static SwerveDriveKinematics KINEMATICS = new SwerveDriveKinematics(
+        new Translation2d(DrivetrainConstants.WHEEL_BASE_WIDTH / 2.0,
+                DrivetrainConstants.WHEEL_BASE_LENGTH / 2.0),
+        // Front right
+        new Translation2d(DrivetrainConstants.WHEEL_BASE_WIDTH / 2.0,
+                -DrivetrainConstants.WHEEL_BASE_LENGTH / 2.0),
+        // Back left
+        new Translation2d(-DrivetrainConstants.WHEEL_BASE_WIDTH / 2.0,
+                DrivetrainConstants.WHEEL_BASE_LENGTH / 2.0),
+        // Back right
+        new Translation2d(-DrivetrainConstants.WHEEL_BASE_WIDTH / 2.0,
+                -DrivetrainConstants.WHEEL_BASE_LENGTH / 2.0)
+    );
 
     public static int getDriveID(SwerveModule module) {
         switch (module) {
