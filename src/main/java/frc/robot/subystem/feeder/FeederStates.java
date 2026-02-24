@@ -1,6 +1,7 @@
 package frc.robot.subystem.feeder;
 
 public enum FeederStates {
-    ON,
+    FEED,
+    REVERSE,
     OFF
 }

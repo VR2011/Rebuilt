@@ -2,101 +2,83 @@ package frc.robot.subystem.feeder;
 
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import edu.wpi.first.units.Units;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
+import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
 
 import static edu.wpi.first.units.Units.Volts;
 
 public class FeederTalonFX implements FeederIO{
     private final TalonFX feederMotor;
-    private final TalonFXConfiguration config;
+    private VoltageOut feederControl;
+    private Voltage feederAppliedVoltage;
 
-    private final StatusSignal<AngularVelocity> feederVelocitySignal;
-    private final StatusSignal<Current> feederSupplySignal;
-    private final StatusSignal<Current> feederStatorSignal;
     private final StatusSignal<Voltage> feederVoltageSignal;
-    private final StatusSignal<Temperature> feederTemperature;
+    private final StatusSignal<Temperature> feederTemperatureSignal;
+    private final StatusSignal<Current> feederAppliedCurrentSignal;
+    private final StatusSignal<Current> feederSupplyCurrentSignal;
 
-    private VelocityVoltage control;
-
-    private AngularVelocity feederTargetRPM;
 
     public FeederTalonFX() {
-        feederMotor = new TalonFX(FeederConstants.FEEDER_MOTOR_ID, FeederConstants.CANBUS);
+        feederMotor = new TalonFX(FeederConstants.FEEDER_MOTOR_ID, Robot.MECH_CANBUS);
 
-        config = new TalonFXConfiguration();
-        config.CurrentLimits.SupplyCurrentLimit = 50;
-        config.CurrentLimits.StatorCurrentLimit = 100;
-        config.CurrentLimits.StatorCurrentLimitEnable = true;
-        config.CurrentLimits.SupplyCurrentLimitEnable = true;
+        TalonFXConfiguration feederConfig = new TalonFXConfiguration();
+        feederConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+        feederConfig.CurrentLimits.SupplyCurrentLimit = 40;
+        feederConfig.CurrentLimits.StatorCurrentLimit = 80;
+        feederConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+        feederConfig.Voltage.PeakForwardVoltage = 12;
+        feederConfig.Voltage.PeakReverseVoltage = -12;
+        feederConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+        feederMotor.getConfigurator().apply(feederConfig);
 
-        config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        feederControl = new VoltageOut(0);
+        feederControl.EnableFOC = true;
+        feederControl.UpdateFreqHz = 1000;
+        feederControl.UseTimesync = false;
+        feederControl.LimitForwardMotion = false;
+        feederControl.LimitReverseMotion = false;
 
-        config.Voltage.PeakForwardVoltage = 12;
-        config.Voltage.PeakReverseVoltage = -12;
+        feederAppliedVoltage = Volts.of(0);
 
-        config.Audio.BeepOnConfig = true;
-        config.Audio.BeepOnBoot = true;
-
-        config.Slot0.kV = .1;
-        config.Slot0.kA = .001;
-        config.Slot0.kP = .75;
-        config.Slot0.kI = 0;
-
-        feederMotor.getConfigurator().apply(config);
-
-        //voltage control
-        feederVelocitySignal = feederMotor.getVelocity();
-        feederSupplySignal = feederMotor.getSupplyCurrent();
-        feederStatorSignal = feederMotor.getSupplyCurrent();
         feederVoltageSignal = feederMotor.getMotorVoltage();
-        feederTemperature = feederMotor.getDeviceTemp();
+        feederTemperatureSignal = feederMotor.getDeviceTemp();
+        feederAppliedCurrentSignal = feederMotor.getStatorCurrent();
+        feederSupplyCurrentSignal = feederMotor.getSupplyCurrent();
 
-        control = new VelocityVoltage(0):
-        control.Slot = 0;
-        control.EnableFOC = false;
-        control.IgnoreHardwareLimits = false;
-        control.LimitForwardMotion = false;
-        control.LimitReverseMotion = false;
-        control.UpdateFreqHz = 1000;
+        StatusSignal.setUpdateFrequencyForAll(50,
+            feederVoltageSignal,
+            feederTemperatureSignal,
+            feederAppliedCurrentSignal,
+            feederSupplyCurrentSignal
+        );
 
-        feederMotor.setControl(control);
+    }
+    @Override
+    public void readPeriodic(){
+        StatusSignal.refreshAll(
+            feederVoltageSignal,
+            feederTemperatureSignal,
+            feederAppliedCurrentSignal,
+            feederSupplyCurrentSignal
+        );
+
+        Logger.recordOutput("feeder/Motor/Voltage", feederVoltageSignal.getValue());
+        Logger.recordOutput("feeder/Motor/Current" , feederAppliedCurrentSignal.getValue());
+        Logger.recordOutput("feeder/Motor/SupplyCurrent" , feederSupplyCurrentSignal.getValue());
+        Logger.recordOutput("feeder/Motor/Temperature" , feederTemperatureSignal.getValue());
+        Logger.recordOutput("feeder/Motor/AppliedVoltage" , feederAppliedVoltage);
+
     }
 
     @Override
     public void setVoltage(Voltage voltage){
-        control.Velocity = voltage.in(Volts);
-        feederMotor.setControl(control);
-    }
-
-    @Override
-    public void readPeriodic() {
-        StatusSignal.refreshAll(
-                feederTemperature,
-                feederSupplySignal,
-                feederStatorSignal,
-                feederVoltageSignal,
-                feederVelocitySignal
-        );
-        Logger.recordOutput("Shooter/Leader/TargetVelocity", feederTargetRPM);
-        Logger.recordOutput("Shooter/Leader/Temperature", feederTemperature.getValue());
-        Logger.recordOutput("Shooter/Leader/SupplyCurrent", feederSupplySignal.getValue());
-        Logger.recordOutput("Shooter/Leader/StatorCurrent", feederStatorSignal.getValue());
-        Logger.recordOutput("Shooter/Leader/VoltageSignal", feederVoltageSignal.getValue());
-        Logger.recordOutput("Shooter/Leader/VelocitySignal", feederVelocitySignal.getValue());
-    }
-
-    @Override
-    public void writePeriodic() {
-
+        feederControl = new VoltageOut(voltage);
+        feederMotor.setControl(feederControl);
     }
 }

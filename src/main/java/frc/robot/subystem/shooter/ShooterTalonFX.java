@@ -8,11 +8,12 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import edu.wpi.first.units.measure.*;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Temperature;
+import edu.wpi.first.units.measure.Voltage;
+import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
-
-import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.RPM;
 
 public class ShooterTalonFX implements ShooterIO {
     private final TalonFX leaderMotor;
@@ -25,7 +26,6 @@ public class ShooterTalonFX implements ShooterIO {
     private final StatusSignal<Voltage> leaderVoltageSignal;
     private final StatusSignal<Temperature> leaderTemperature;
 
-
     private final StatusSignal<AngularVelocity> followerVelocitySignal;
     private final StatusSignal<Current> followerSupplySignal;
     private final StatusSignal<Current> followerStatorSignal;
@@ -33,14 +33,14 @@ public class ShooterTalonFX implements ShooterIO {
     private final StatusSignal<Temperature> followerTemperature;
 
     private final VelocityVoltage control;
-    private final Follower followerController;
+    private final Follower followerControl;
 
     private AngularVelocity targetVelocity;
 
     public ShooterTalonFX() {
-        leaderMotor = new TalonFX(ShooterConstants.LEADER_MOTOR_ID, ShooterConstants.CANBUS);
-        followerMotor = new TalonFX(ShooterConstants.FOLLOWER_MOTOR_ID, ShooterConstants.CANBUS);
-        followerController = new Follower(ShooterConstants.LEADER_MOTOR_ID, MotorAlignmentValue.Opposed);
+        leaderMotor = new TalonFX(ShooterConstants.LEADER_MOTOR_ID, Robot.MECH_CANBUS);
+        followerMotor = new TalonFX(ShooterConstants.FOLLOWER_MOTOR_ID, Robot.MECH_CANBUS);
+        followerControl = new Follower(ShooterConstants.LEADER_MOTOR_ID, MotorAlignmentValue.Opposed);
 
         config = new TalonFXConfiguration();
         config.CurrentLimits.SupplyCurrentLimit = 50;
@@ -77,7 +77,25 @@ public class ShooterTalonFX implements ShooterIO {
         followerVoltageSignal = followerMotor.getMotorVoltage();
         followerTemperature = followerMotor.getDeviceTemp();
 
-        followerMotor.setControl(followerController);
+        StatusSignal.setUpdateFrequencyForAll(
+            250,
+            leaderVelocitySignal,
+            followerVelocitySignal);
+
+        StatusSignal.setUpdateFrequencyForAll(
+            20,
+            leaderSupplySignal,
+            leaderStatorSignal,
+            leaderVoltageSignal,
+            leaderTemperature,
+
+            followerSupplySignal,
+            followerStatorSignal,
+            followerVoltageSignal,
+            followerTemperature
+            );
+
+        followerMotor.setControl(followerControl);
 
         control = new VelocityVoltage(0);
         control.Slot = 0;
@@ -104,12 +122,11 @@ public class ShooterTalonFX implements ShooterIO {
                 followerVelocitySignal,
                 followerVoltageSignal
         );
-
     }
 
     @Override
     public void writePeriodic() {
-        Logger.recordOutput("Shooter/Leader/TargetVelocity", leaderTargetRPM);
+        Logger.recordOutput("Shooter/Leader/TargetVelocity", targetVelocity);
         Logger.recordOutput("Shooter/Leader/Temperature", leaderTemperature.getValue());
         Logger.recordOutput("Shooter/Leader/SupplyCurrent", leaderSupplySignal.getValue());
         Logger.recordOutput("Shooter/Leader/StatorCurrent", leaderStatorSignal.getValue());
@@ -124,16 +141,8 @@ public class ShooterTalonFX implements ShooterIO {
     }
 
     @Override
-    public AngularVelocity calculateLeaderRPM(Distance distance) {
-         return AngularVelocity.ofBaseUnits(1510 + (217 * distance.in(Inches)) - (3.81 * distance.in(Inches) * distance.in(Inches)),RPM.getBaseUnit());
-    }
-
-    public void setLeaderRPM(AngularVelocity targetRPM) {
-        this.leaderTargetRPM = targetRPM;
-    }
-
-    public void setFollowerRPM(AngularVelocity targetRPM) {
-        this.followerTargetRPM = targetRPM;
+    public void setVelocity(AngularVelocity velocity) {
+        this.targetVelocity = velocity;
     }
 
 }

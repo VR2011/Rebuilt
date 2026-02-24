@@ -1,11 +1,12 @@
-package frc.robot.subystem.intake;
+package frc.robot.subystem.climber;
 
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
@@ -13,14 +14,12 @@ import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import frc.robot.Robot;
 import org.littletonrobotics.junction.Logger;
 
-import static edu.wpi.first.units.Units.Celsius;
-import static edu.wpi.first.units.Units.Volts;
+import static edu.wpi.first.units.Units.*;
 
-public class IntakeTalonFx implements IntakeIO {
+public class ClimberTalonFx implements ClimberIO{
 
-    private final TalonFX driveMotor;
-    private VoltageOut driveControl;
-    private Voltage driveAppliedVoltage;
+    private final TalonFX motor;
+    private final PositionVoltage control;
 
     private final StatusSignal<Voltage> driveVoltageSignal;
     private final StatusSignal<Temperature> driveTemperatureSignal;
@@ -29,9 +28,9 @@ public class IntakeTalonFx implements IntakeIO {
 
     private final DoubleSolenoid solenoid;
 
-    public IntakeTalonFx() {
+    public ClimberTalonFx() {
 
-        driveMotor = new TalonFX(IntakeConstants.DRIVE_MOTOR_ID, Robot.MECH_CANBUS);
+        motor = new TalonFX(ClimberConstants.MOTOR_ID, Robot.MECH_CANBUS);
 
         TalonFXConfiguration driveMotorConfig = new TalonFXConfiguration();
         driveMotorConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
@@ -41,34 +40,35 @@ public class IntakeTalonFx implements IntakeIO {
         driveMotorConfig.Voltage.PeakForwardVoltage = 12;
         driveMotorConfig.Voltage.PeakReverseVoltage = -12;
         driveMotorConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        driveMotor.getConfigurator().apply(driveMotorConfig);
+        driveMotorConfig.Slot0.kP = 5;
+        driveMotorConfig.Slot0.kI = 0;
+        driveMotorConfig.Slot0.kD = 0;
+        driveMotorConfig.Slot0.kG = 0;
+        motor.getConfigurator().apply(driveMotorConfig);
 
-        driveControl = new VoltageOut(0);
-        driveControl.EnableFOC = false;
-        driveControl.UpdateFreqHz = 1000;
-        driveControl.UseTimesync = false;
-        driveControl.LimitReverseMotion = false;
-        driveControl.LimitForwardMotion = false;
+        control = new PositionVoltage(0); // Angle
+        control.UseTimesync = true;
+        control.Slot = 0;
+        control.EnableFOC = true;
+        control.UpdateFreqHz = 1000;
 
-        driveAppliedVoltage = Volts.of(0);
-
-        driveVoltageSignal = driveMotor.getMotorVoltage();
-        driveTemperatureSignal = driveMotor.getDeviceTemp();
-        driveAppliedCurrentSignal = driveMotor.getStatorCurrent();
-        driveSupplyCurrentSignal = driveMotor.getSupplyCurrent();
-
-        solenoid = new DoubleSolenoid(
-                PneumaticsModuleType.CTREPCM,
-                IntakeConstants.SOLENOID_FWD_CHANNEL,
-                IntakeConstants.SOLENOID_REV_CHANNEL
-        );
+        driveVoltageSignal = motor.getMotorVoltage();
+        driveTemperatureSignal = motor.getDeviceTemp();
+        driveAppliedCurrentSignal = motor.getStatorCurrent();
+        driveSupplyCurrentSignal = motor.getSupplyCurrent();
 
         StatusSignal.setUpdateFrequencyForAll(
-            10,
+            50,
             driveVoltageSignal,
             driveTemperatureSignal,
             driveAppliedCurrentSignal,
             driveSupplyCurrentSignal
+        );
+
+        solenoid = new DoubleSolenoid(
+                PneumaticsModuleType.CTREPCM,
+                ClimberConstants.SOLENOID_FWD_CHANNEL,
+                ClimberConstants.SOLENOID_REV_CHANNEL
         );
     }
 
@@ -81,11 +81,10 @@ public class IntakeTalonFx implements IntakeIO {
                 driveSupplyCurrentSignal
         );
 
-        Logger.recordOutput("Intake/Drive/Voltage", driveVoltageSignal.getValue());
-        Logger.recordOutput("Intake/Drive/Current", driveAppliedCurrentSignal.getValue());
-        Logger.recordOutput("Intake/Drive/SupplyCurrent", driveSupplyCurrentSignal.getValue());
-        Logger.recordOutput("Intake/Drive/Temperature", driveTemperatureSignal.getValue().in(Celsius));
-        Logger.recordOutput("Intake/Drive/AppliedVoltage", driveAppliedVoltage);
+        Logger.recordOutput("Climber/Motor/Voltage", driveVoltageSignal.getValue());
+        Logger.recordOutput("Climber/Motor/Current", driveAppliedCurrentSignal.getValue());
+        Logger.recordOutput("Climber/Motor/SupplyCurrent", driveSupplyCurrentSignal.getValue());
+        Logger.recordOutput("Climber/Motor/Temperature", driveTemperatureSignal.getValue().in(Celsius));
 
     }
 
@@ -95,15 +94,15 @@ public class IntakeTalonFx implements IntakeIO {
     }
 
     @Override
-    public void setVoltage(Voltage voltage) {
-        //driveAppliedVoltage = Volts.in(voltage.Output);
-        driveControl = new VoltageOut(voltage);
-        driveMotor.setControl(driveControl);
+    public void setHeight(Distance targetHeight) {
+        double height = targetHeight.in(Inches);
+        control.Position = (height / (2 * Math.PI * 2)) * 75;
+        motor.setControl(control);
     }
 
     @Override
     public DoubleSolenoid.Value getPivotState(){
         return solenoid.get();
-    };
+    }
 
 }

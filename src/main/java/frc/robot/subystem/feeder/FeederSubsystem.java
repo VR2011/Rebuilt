@@ -1,59 +1,44 @@
 package frc.robot.subystem.feeder;
 
-import edu.wpi.first.units.measure.AngularVelocity;
+
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Voltage;
 import org.littletonrobotics.junction.Logger;
 
-import static edu.wpi.first.units.Units.RPM;
+import java.util.HashMap;
 
-public class FeederSubsystem extends FeederTalonFX {
-    private static FeederSubsystem INSTANCE;
+public class FeederSubsystem {
+    private static FeederSubsystem INSTANCE = new FeederSubsystem();
 
-    private final FeederIO feeder;
+    private FeederStates state;
 
-    private AngularVelocity feederTargetSpeed;
+    private final HashMap<FeederStates, Voltage> feederVoltageMap = new HashMap<>();
 
-    private FeederStates feederState;
-
+    private final FeederIO io;
     private FeederSubsystem() {
-        feeder = new FeederTalonFX();
+        state = FeederStates.OFF;
+
+        feederVoltageMap.put(FeederStates.OFF,Voltage.ofBaseUnits(0, Units.Volts));
+        feederVoltageMap.put(FeederStates.REVERSE,Voltage.ofBaseUnits(FeederConstants.REVERSE, Units.Volts));
+        feederVoltageMap.put(FeederStates.FEED ,Voltage.ofBaseUnits(FeederConstants.FEED_VOLTAGE, Units.Volts));// This constant
+
+        io = new FeederTalonFX();
+
+        io.setVoltage(Voltage.ofBaseUnits(0, Units.Volts));
     }
 
-    @Override
-    public void readPeriodic() {
-        feeder.readPeriodic();
+    public void readPeriodic(){
+        Logger.recordOutput("Feeder/State",state);
+        io.writePeriodic();
     }
-
-    @Override
-    public void writePeriodic() {
-        Logger.recordOutput("Feeder/Motor/TargetSpeed", feederTargetSpeed);
-        Logger.recordOutput("Feeder/Mode/FeederMode", feederState);
-
-        feeder.writePeriodic();
+    public void setState(FeederStates state){
+        this.state = state;
+        io.setVoltage(feederVoltageMap.get(state));
     }
-
-    public void setShooterMode(FeederStates feederState) {
-        this.feederState = feederState;
-
-        switch (feederState)
-        {
-            case ON -> {
-                feederTargetSpeed = AngularVelocity.ofBaseUnits(3000, RPM.getBaseUnit());
-            }
-
-            case OFF -> {
-                feederTargetSpeed = AngularVelocity.ofBaseUnits(0, RPM.getBaseUnit());
-            }
-        }
-    }
-
-
-    public static FeederSubsystem getInstance()
-    {
-        if (INSTANCE == null)
-        {
-            INSTANCE = new FeederSubsystem();
-        }
+    public static FeederSubsystem getInstance(){
         return INSTANCE;
     }
+
+
 
 }

@@ -12,45 +12,51 @@ public class Robot extends LoggedRobot {
     public static final double PERIOD = .020; // 20 milliseconds
     public static final CANBus MECH_CANBUS = new CANBus("Mech");
 
-    public Robot() {}
-
-  @Override
-  public void robotPeriodic() {
-
-  }
+    public Robot() {
+    }
 
     @Override
-    public void robotPeriodic() {}
+    public void robotPeriodic() {
 
-
-
-    @Override
-    public void autonomousInit() {}
+    }
 
     @Override
-    public void autonomousPeriodic() {}
+    public void autonomousInit() {
+    }
 
     @Override
-    public void teleopInit() {}
+    public void autonomousPeriodic() {
+    }
 
     @Override
-    public void teleopPeriodic() {}
+    public void teleopInit() {
+    }
 
     @Override
-    public void disabledInit() {}
+    public void teleopPeriodic() {
+    }
 
     @Override
-    public void disabledPeriodic() {}
+    public void disabledInit() {
+    }
 
     @Override
-    public void testInit() {}
+    public void disabledPeriodic() {
+    }
 
     @Override
-    public void testPeriodic() {}
+    public void testInit() {
+    }
 
     @Override
-    public void simulationInit() {}
+    public void testPeriodic() {
+    }
 
     @Override
-    public void simulationPeriodic() {}
+    public void simulationInit() {
+    }
+
+    @Override
+    public void simulationPeriodic() {
+    }
 }
