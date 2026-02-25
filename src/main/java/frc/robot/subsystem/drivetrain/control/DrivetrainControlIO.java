@@ -1,4 +1,4 @@
-package frc.robot.subystem.drivetrain.control;
+package frc.robot.subsystem.drivetrain.control;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;

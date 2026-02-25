@@ -1,4 +1,4 @@
-package frc.robot.subystem.drivetrain;
+package frc.robot.subsystem.drivetrain;
 
 public enum SwerveModule {
     FrontLeft,

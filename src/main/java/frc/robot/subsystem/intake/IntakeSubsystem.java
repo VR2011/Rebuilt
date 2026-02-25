@@ -1,6 +1,5 @@
-package frc.robot.subystem.intake;
+package frc.robot.subsystem.intake;
 
-import com.ctre.phoenix6.controls.VoltageOut;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.DoubleSolenoid;

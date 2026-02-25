@@ -1,77 +1,58 @@
 package frc.robot.subsystem.climber;
 
-
-import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import org.littletonrobotics.junction.Logger;
 
 import java.util.HashMap;
 
-import static edu.wpi.first.units.Units.Volts;
+public class ClimberSubsystem {
+    private static ClimberSubsystem INSTANCE = new ClimberSubsystem();
 
-public class ClimberSubsystem extends ClimberTalonFX {
-    private static ClimberSubsystem instance;
-    private ClimberStates motorState;
-    private final HashMap<ClimberStates, Voltage> motorStateMap;
+    private ClimberStates state;
+
+    private final HashMap<ClimberStates, Distance> driveDistanceMap = new HashMap<>();
+    private final HashMap<ClimberStates, DoubleSolenoid.Value> pistonMap = new HashMap<>();
+
     private final ClimberIO io;
-    private Voltage currentVoltageTarget;
 
     private ClimberSubsystem() {
-        motorState = ClimberStates.off.off;
-        motorStateMap = new HashMap<>();
-        motorStateMap.put(ClimberStates.off.off, Volts.of(0));
+        state = ClimberStates.retract;
 
-        io = new ClimberIO() {
-            @Override
-            public void setVoltage(double voltage) {
+        driveDistanceMap.put(ClimberStates.retract, ClimberConstants.BOTTOM_HEIGHT);
+        driveDistanceMap.put(ClimberStates.extend, ClimberConstants.TOP_HEIGHT);
+        driveDistanceMap.put(ClimberStates.climb, ClimberConstants.CLIMB_HEIGHT);
 
-            }
+        pistonMap.put(ClimberStates.retract, DoubleSolenoid.Value.kReverse);
+        pistonMap.put(ClimberStates.extend, DoubleSolenoid.Value.kReverse);
+        pistonMap.put(ClimberStates.climb, DoubleSolenoid.Value.kForward);
 
-            @Override
-            public void writePeriodic() {
+        io = new ClimberTalonFx();
 
-            }
-
-            @Override
-            public void readPeriodic() {
-
-            }
-
-            @Override
-            public void simulationPeriodic() {
-
-            }
-
-            @Override
-            public void simulatePeriodic() {
-                io.simulationPeriodic();
-            }
-        };
+        io.setHeight(ClimberConstants.BOTTOM_HEIGHT);
     }
 
-    @Override
-    public void readPeriodic() {
+    public void readPeriodic(){
+        Logger.recordOutput("Climber/State", state);
         io.readPeriodic();
-
-        Logger.recordOutput("Mop/MopStates", motorState);
     }
-    @Override
-    public void writePeriodic() {
+
+    public void writePeriodic(){
         io.writePeriodic();
     }
 
-    @Override
-    public void simulatePeriodic() {
-
+    //DoubleSolenoid.Value value
+    public ClimberStates getState(){
+        return state;
     }
 
-    public ClimberStates getMotorState() {
-        return motorState;
+    public void setState(ClimberStates state){
+        this.state = state;
+        io.setHeight(driveDistanceMap.get(state));
+        io.setPivotState(pistonMap.get(state));
     }
+
     public static ClimberSubsystem getInstance() {
-        if (instance == null) {
-            instance = new ClimberSubsystem();
-        }
-        return instance;
+        return INSTANCE;
     }
-
 }

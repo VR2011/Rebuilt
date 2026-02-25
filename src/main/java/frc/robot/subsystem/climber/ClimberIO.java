@@ -1,12 +1,15 @@
 package frc.robot.subsystem.climber;
 
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+
 public interface ClimberIO {
-    void setVoltage(double voltage);
 
-    void writePeriodic();
-    void readPeriodic();
+    public void setPivotState(DoubleSolenoid.Value value);
+    public void setHeight(Distance targetHeight);
 
-    void simulationPeriodic();
+    public DoubleSolenoid.Value getPivotState();
 
-    void simulatePeriodic();
+    public void readPeriodic();
+    public default void writePeriodic(){return;};
 }

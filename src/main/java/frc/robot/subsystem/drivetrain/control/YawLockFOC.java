@@ -1,4 +1,4 @@
-package frc.robot.subystem.drivetrain.control;
+package frc.robot.subsystem.drivetrain.control;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -7,7 +7,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
-import frc.robot.subystem.drivetrain.DrivetrainConstants;
+import frc.robot.subsystem.drivetrain.DrivetrainConstants;
 
 public class YawLockFOC implements DrivetrainControlIO{
     private final LinearVelocity horizontalVelocity;

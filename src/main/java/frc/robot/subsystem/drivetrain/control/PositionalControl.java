@@ -1,9 +1,9 @@
-package frc.robot.subystem.drivetrain.control;
+package frc.robot.subsystem.drivetrain.control;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import frc.robot.subystem.drivetrain.DrivetrainConstants;
+import frc.robot.subsystem.drivetrain.DrivetrainConstants;
 
 public class PositionalControl implements DrivetrainControlIO{
     private final PIDController horizontalController;

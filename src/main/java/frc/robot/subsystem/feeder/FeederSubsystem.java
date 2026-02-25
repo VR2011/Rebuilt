@@ -1,4 +1,4 @@
-package frc.robot.subystem.feeder;
+package frc.robot.subsystem.feeder;
 
 
 import edu.wpi.first.units.Units;

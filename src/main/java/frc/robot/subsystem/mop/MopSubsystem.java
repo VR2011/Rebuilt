@@ -1,4 +1,4 @@
-package frc.robot.subystem.mop;
+package frc.robot.subsystem.mop;
 
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Voltage;

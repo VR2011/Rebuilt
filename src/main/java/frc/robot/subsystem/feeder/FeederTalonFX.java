@@ -1,4 +1,4 @@
-package frc.robot.subystem.feeder;
+package frc.robot.subsystem.feeder;
 
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;

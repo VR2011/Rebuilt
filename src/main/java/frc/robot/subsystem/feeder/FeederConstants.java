@@ -1,6 +1,4 @@
-package frc.robot.subystem.feeder;
-
-import com.ctre.phoenix6.CANBus;
+package frc.robot.subsystem.feeder;
 
 public class FeederConstants {
     public static final int FEEDER_MOTOR_ID = 2;

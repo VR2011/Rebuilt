@@ -1,4 +1,4 @@
-package frc.robot.subystem.drivetrain;
+package frc.robot.subsystem.drivetrain;
 
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.Pigeon2;
@@ -14,8 +14,8 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import frc.robot.Robot;
 import frc.robot.lib.LimelightHelpers;
-import frc.robot.subystem.drivetrain.control.DrivetrainControlIO;
-import frc.robot.subystem.drivetrain.control.VelocityFOC;
+import frc.robot.subsystem.drivetrain.control.DrivetrainControlIO;
+import frc.robot.subsystem.drivetrain.control.VelocityFOC;
 import org.littletonrobotics.junction.Logger;
 
 public class Drivetrain {

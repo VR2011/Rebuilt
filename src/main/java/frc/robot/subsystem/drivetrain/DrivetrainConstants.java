@@ -1,4 +1,4 @@
-package frc.robot.subystem.drivetrain;
+package frc.robot.subsystem.drivetrain;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
