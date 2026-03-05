@@ -23,7 +23,7 @@ public class IO {
         controlsDigital.put(Controls.intake, () -> primary.getAButton());
         controlsDigital.put(Controls.reverseIntake, () -> primary.getYButton());
         controlsDigital.put(Controls.climbAlign, () -> primary.getLeftBumperButton() ||  primary.getRightBumperButton());
-        controlsDigital.put(Controls.alignShooting, () -> primary.getAButton());
+        controlsDigital.put(Controls.alignShooting, () -> primary.getLeftTriggerAxis() > .7);
         controlsDigital.put(Controls.shooting, () -> primary.getRightTriggerAxis() > -.7);
 
         controlsDigital.put(Controls.manualClimbUp, () -> primary.getPOV() == 0);

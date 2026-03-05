@@ -32,8 +32,10 @@ public class ShooterSubsystem extends ShooterTalonFX {
         stateChooser.addOption("AUTO", ShooterState.AUTO);
         stateChooser.addOption("TEST", ShooterState.TEST);
         stateChooser.onChange(this::setState);
+
         setState(ShooterState.OFF);
 
+        SmartDashboard.putData("Shooter State", stateChooser);
         SmartDashboard.putNumber("Test RPM", testVelocity.in(RotationsPerSecond) * 60);
 
         shooter = new ShooterTalonFX();

@@ -11,6 +11,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.IO.Controls;
 import frc.robot.IO.IO;
 import frc.robot.subsystem.climber.ClimberStates;
@@ -74,6 +75,7 @@ public class Superstructure {
         setAlliance(DriverStation.getAlliance().orElse(DriverStation.Alliance.Blue));
 
         lockShooterChooser = new SendableChooser<>();
+        SmartDashboard.putData("Lock Shooter Chooser", lockShooterChooser);
         lockShooterChooser.setDefaultOption("Auto Align On", ShooterTargetLockMode.AutoAlign);
         lockShooterChooser.addOption("Auto Align Off", ShooterTargetLockMode.None);
         lockShooterChooser.onChange(this::setTargetLock);
